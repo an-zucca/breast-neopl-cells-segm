@@ -1,0 +1,2 @@
+Nel contesto binario, si hanno 31.177 cellule non-neoplastiche e 19.900 cellule neoplastiche, che rappresentano rispettivamente il 61.04% e il 38.96% del totale.
+__________________________________________________________________________________________________________________________________________

@@ -1,0 +1,1 @@
+In Figura 5 si riportano i valori di precisione media (AP).

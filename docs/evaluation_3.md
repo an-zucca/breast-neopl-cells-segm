@@ -1,0 +1,1 @@
+In Figura 6 si riportano i valori di richiamo medio (AR).
