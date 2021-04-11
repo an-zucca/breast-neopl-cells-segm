@@ -14,8 +14,6 @@ import random
 
 import base64
 
-import numpy as np
-
 import dash_table
 import json
 import math
@@ -126,9 +124,8 @@ button_github = dbc.Button(
     "View Code on github",
     outline=True,
     color="primary",
-    href="",
-    id="gh-link",
-    disabled=True
+    href="https://github.com/zuccaandrea/breast-neopl-cells-segm",
+    id="gh-link"
 )
 
 modal_overlay = dbc.Modal(
@@ -393,12 +390,12 @@ app.layout = html.Div(
 def convert_bbox(bbox, type_ann):
     if type_ann == 'GT':
         x1 = round(bbox[0], 4)
-        y1 = 255 - round(bbox[1], 4)
+        y1 = round(bbox[1], 4)
         width = round(bbox[2], 4)
         height = round(bbox[3], 4)
 
         x0 = x1
-        y0 = y1 - height
+        y0 = y1 + height
         x2 = width + x1
         y2 = y1
         x3 = x2
@@ -409,9 +406,9 @@ def convert_bbox(bbox, type_ann):
     elif type_ann == 'PRED':
 
         x1 = round(bbox[0], 4)
-        y1 = 255 - round(bbox[1], 4)
+        y1 = round(bbox[1], 4)
         x3 = round(bbox[2], 4)
-        y3 = 255 - round(bbox[3], 4)
+        y3 = round(bbox[3], 4)
 
         x0 = x1
         y0 = y3
@@ -420,60 +417,6 @@ def convert_bbox(bbox, type_ann):
         y2 = y1
 
         return [x0, x1, x2, x3, x0], [y0, y1, y2, y3, y0]
-
-
-def get_figure(base64ImageString):
-    # Create figure
-    fig = go.Figure()
-
-    # Constants
-    img_width = 256
-    img_height = 256
-    scale_factor = 1
-
-    fig.add_trace(
-        go.Scatter(x=[0, img_width * scale_factor],
-                   y=[0, img_height * scale_factor],
-                   mode="markers",
-                   marker_opacity=0,
-                   hoverinfo='none')
-    )
-
-    # Configure axes
-    fig.update_xaxes(
-        visible=False  # ,
-        # range=[0, img_width * scale_factor]
-    )
-
-    fig.update_yaxes(
-        visible=False,
-        # range=[0, img_height * scale_factor],
-        scaleanchor="x"
-    )
-
-    # Add images
-    fig.add_layout_image(
-        dict(
-            source=base64ImageString,
-            xref="x",
-            yref="y",
-            x=0,
-            y=img_height * scale_factor,
-            sizex=img_width * scale_factor,
-            sizey=img_height * scale_factor,
-            sizing="stretch",
-            opacity=1.0,
-            layer="below", )
-    )
-
-    # Set templates
-    fig.update_layout(template="plotly_white",
-                      width=img_width * scale_factor,
-                      height=img_height * scale_factor,
-                      margin={"l": 0, "r": 0, "t": 0, "b": 0}
-                      )
-
-    return fig
 
 
 def get_summary(json_annotation, image_id, ann_type='GT'):
@@ -515,10 +458,10 @@ def get_summary(json_annotation, image_id, ann_type='GT'):
             solidity = round(props['solidity'][0],4)
 
             # Detect contours from mask
-            mask = np.pad(mask, [(1,), (1,)], mode='constant')
+            # mask = np.pad(mask, [(1,), (1,)], mode='constant')
             contours = measure.find_contours(mask, level=0.5)
 
-            mask_contours = (contours[0][:, 1], 256 - contours[0][:, 0])
+            mask_contours = (contours[0][:, 1], contours[0][:, 0])
 
             bbox = convert_bbox(ann['bbox'],ann_type)
 
@@ -568,11 +511,13 @@ def update_output(image_id):
     if image_id is not None:
         return read_local_file(f'{image_id:08}.png', 'data')
 
+
 def draw_figure(base64_img_string,summary_data,ann_type, visual_type):
 
     data_descript = get_data_descript(ann_type, visual_type)
 
-    fig = get_figure(base64_img_string)
+    fig = go.Figure(go.Image(source=base64_img_string))
+    fig.update_traces(hoverinfo="skip", hovertemplate=None)
 
     for ann in summary_data:
 
@@ -608,9 +553,12 @@ def draw_figure(base64_img_string,summary_data,ann_type, visual_type):
     config = dict({
         'paper_bgcolor': 'rgba(0,0,0,0)',
         'plot_bgcolor': 'rgba(0,0,0,0)',
-        'showlegend': False,
-        'margin': dict(l=0, r=0, t=0, b=0)
+        'showlegend': False
     })
+
+    fig.update_layout(height=300, margin=dict(l=10, r=10, b=10, t=10), template="simple_white")
+    fig.update_xaxes(visible=False, range=[0, 256]).update_yaxes(visible=False, range=[256, 0])
+
 
     fig.update_layout(config)
 
