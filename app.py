@@ -7,14 +7,14 @@ import plotly.graph_objects as go
 
 import dash
 from dash.dependencies import Input, Output, State
-import dash_html_components as html
-import dash_core_components as dcc
+from dash import html
+from dash import dcc
 import dash_bootstrap_components as dbc
 import random
 
 import base64
 
-import dash_table
+from dash import dash_table
 import json
 import math
 from skimage import measure
@@ -22,7 +22,6 @@ from skimage import measure
 import utils
 import pathlib as pl
 import os
-
 
 external_stylesheets = [dbc.themes.BOOTSTRAP, "assets/segmentation-style.css"]
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
@@ -178,7 +177,6 @@ modal_overlay = dbc.Modal(
     size="lg",
 )
 
-
 # Header
 header = dbc.Navbar(
     dbc.Container(
@@ -254,7 +252,7 @@ gt_card = dbc.Card(
             )
         ),
         dbc.CardFooter(dbc.Row(
-            [dbc.Col([dbc.Button('Random tissue', id='submit-val', n_clicks=0, color="primary", block=True)], md=7),
+            [dbc.Col([dbc.Button('Random tissue', id='submit-val', n_clicks=0, color="primary")], md=7),
              dbc.Col([html.P("Type:"),
                       dcc.Dropdown(
                           id='dropdown-visual-type',
@@ -420,7 +418,6 @@ def convert_bbox(bbox, type_ann):
 
 
 def get_summary(json_annotation, image_id, ann_type='GT'):
-
     summary = []
 
     for ann in json_annotation['annotations']:
@@ -443,19 +440,19 @@ def get_summary(json_annotation, image_id, ann_type='GT'):
             props = measure.regionprops_table(mask, properties=('area', 'perimeter', 'solidity'))
 
             # cell's area
-            area = round(props['area'][0],4)
+            area = round(props['area'][0], 4)
 
             # cell's perimeter
-            perimeter = round(props['perimeter'][0],4)
+            perimeter = round(props['perimeter'][0], 4)
 
             # cell's circularity
             try:
-                circularity = round((4 * math.pi) * (area / pow(perimeter, 2)),4)
+                circularity = round((4 * math.pi) * (area / pow(perimeter, 2)), 4)
             except:
                 circularity = -1
 
             # cell's solidity
-            solidity = round(props['solidity'][0],4)
+            solidity = round(props['solidity'][0], 4)
 
             # Detect contours from mask
             # mask = np.pad(mask, [(1,), (1,)], mode='constant')
@@ -463,7 +460,7 @@ def get_summary(json_annotation, image_id, ann_type='GT'):
 
             mask_contours = (contours[0][:, 1], contours[0][:, 0])
 
-            bbox = convert_bbox(ann['bbox'],ann_type)
+            bbox = convert_bbox(ann['bbox'], ann_type)
 
             if ann_type == 'GT':
                 summary.append({"id": id_detection, "classe": classe, 'descr_class': classes_descr, "area": area,
@@ -472,16 +469,19 @@ def get_summary(json_annotation, image_id, ann_type='GT'):
             elif ann_type == 'PRED':
                 score = round(ann['score'], 4)
 
-                summary.append({"id": id_detection, "classe": classe, 'descr_class': classes_descr, "score": score, "area": area,
-                                "perimeter": perimeter, "circularity": circularity, "solidity": solidity,
-                                "mask_contour": mask_contours, "bbox": bbox})
+                summary.append(
+                    {"id": id_detection, "classe": classe, 'descr_class': classes_descr, "score": score, "area": area,
+                     "perimeter": perimeter, "circularity": circularity, "solidity": solidity,
+                     "mask_contour": mask_contours, "bbox": bbox})
 
     return summary
+
 
 @app.callback(Output('out-info-threshold', 'children'),
               Input('threshold-slider', 'value'))
 def info_tresh(threshold_slider):
     return f"Confidence Threshold: {threshold_slider}"
+
 
 @app.callback(Output('gt-summary-data', 'data'),
               [Input('image-id', 'data'),
@@ -512,8 +512,7 @@ def update_output(image_id):
         return read_local_file(f'{image_id:08}.png', 'data')
 
 
-def draw_figure(base64_img_string,summary_data,ann_type, visual_type):
-
+def draw_figure(base64_img_string, summary_data, ann_type, visual_type):
     data_descript = get_data_descript(ann_type, visual_type)
 
     fig = go.Figure(go.Image(source=base64_img_string))
@@ -559,7 +558,6 @@ def draw_figure(base64_img_string,summary_data,ann_type, visual_type):
     fig.update_layout(height=300, margin=dict(l=10, r=10, b=10, t=10), template="simple_white")
     fig.update_xaxes(visible=False, range=[0, 256]).update_yaxes(visible=False, range=[256, 0])
 
-
     fig.update_layout(config)
 
     return fig
@@ -573,7 +571,8 @@ def draw_figure(base64_img_string,summary_data,ann_type, visual_type):
      Input('dropdown-visual-type', 'value')])
 def update_figure_pred(base64_img_string, threshold_slider, pred_summary_data, visual_type):
     summary = [ann for ann in pred_summary_data if ann['score'] >= threshold_slider]
-    return draw_figure(base64_img_string,summary,'PRED',visual_type)
+    return draw_figure(base64_img_string, summary, 'PRED', visual_type)
+
 
 @app.callback(
     Output('graph-gt', 'figure'),
@@ -581,14 +580,14 @@ def update_figure_pred(base64_img_string, threshold_slider, pred_summary_data, v
      Input('gt-summary-data', 'data'),
      Input('dropdown-visual-type', 'value')])
 def update_figure_gt(base64_img_string, summary_data, visual_type):
-    return draw_figure(base64_img_string,summary_data,'GT',visual_type)
+    return draw_figure(base64_img_string, summary_data, 'GT', visual_type)
+
 
 @app.callback(
     Output('distr-plot', 'figure'),
     [Input('threshold-slider', 'value'),
      Input('pred-summary-data', 'data')])
 def update_distr_plot(threshold_slider, summary_data):
-
     data = {1: 0,
             2: 0}
 
