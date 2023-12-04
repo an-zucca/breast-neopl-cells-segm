@@ -108,7 +108,7 @@ def read_local_file(filename, folder):
         with open(file_path, 'r') as json_file:
             return json.load(json_file)
     elif file_extension == '.md':
-        with open(file_path, 'r') as f:
+        with open(file_path, 'r', encoding='utf-8') as f:
             return f.read()
 
 
@@ -123,7 +123,7 @@ button_github = dbc.Button(
     "View Code on github",
     outline=True,
     color="primary",
-    href="https://github.com/zuccaandrea/breast-neopl-cells-segm",
+    href="https://github.com/an-zucca/breast-neopl-cells-segm",
     id="gh-link"
 )
 
@@ -131,9 +131,9 @@ modal_overlay = dbc.Modal(
     [
         dbc.ModalBody(html.Div([
             html.H5('Autore'),
-            html.Img(src=read_local_file('author.jpg', 'docs'), style={'height': '35%', 'width': '35%'}),
-            html.P('Andrea Zucca', id="author"),
-            html.A("LinkedIn", href='https://www.linkedin.com/in/andrea-zucca-62b6a6174/'),
+            html.Img(src=read_local_file('author_andrea.jpg', 'docs'), style={'height': '20%', 'width': '20%'}),
+            html.P(''),
+            html.A("Andrea Zucca", href='https://www.linkedin.com/in/andrea-zucca-62b6a6174/'),
             dcc.Markdown(read_local_file('app.md', 'docs')),
             dcc.Markdown(read_local_file('working.md', 'docs')),
             dcc.Markdown(read_local_file('dataset_1.md', 'docs')),
